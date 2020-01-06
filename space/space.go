@@ -1,9 +1,10 @@
 package space
 
 import (
-	. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
 	"reflect"
+
+	. "github.com/FelixL321/gospace/protocol"
+	. "github.com/FelixL321/gospace/shared"
 )
 
 // Interspace defines the internal space interface.

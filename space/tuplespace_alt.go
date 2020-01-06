@@ -3,11 +3,12 @@ package space
 import (
 	"encoding/gob"
 	"fmt"
-	. "github.com/pspaces/gospace/protocol"
-	. "github.com/pspaces/gospace/shared"
 	"net"
 	"strings"
 	"sync"
+
+	. "github.com/FelixL321/gospace/protocol"
+	. "github.com/FelixL321/gospace/shared"
 )
 
 // NewSpaceAlt creates a representation of a new tuple space.

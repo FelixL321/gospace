@@ -1,7 +1,7 @@
 package protocol
 
 import (
-	. "github.com/pspaces/gospace/shared"
+	. "github.com/FelixL321/gospace/shared"
 )
 
 // WaitingClient is used as a structure for clients who performed an
