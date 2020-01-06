@@ -2,25 +2,22 @@ package space
 
 import (
 	"fmt"
-	"go/build"
 	"reflect"
+	"runtime"
 	"strings"
-
-	"github.com/pspaces/gospace/function"
 )
 
 // SpaceError represents an internal error type used when printing error messages.
 type SpaceError struct {
-	Msg     string
-	LibInfo function.CallerInfo
-	UsrInfo function.CallerInfo
-	Sid     string
-	Val     string
-	Sop     bool
-	Status  interface{}
+	msg    string
+	pkg    string
+	fun    string
+	sid    string
+	val    string
+	sop    bool
+	status interface{}
 }
 
-// Constants used for enumerating the generic error strings.
 const (
 	SpaceInvalid = iota
 	SpaceNoErrorMethod
@@ -34,30 +31,22 @@ var errMsg = map[int]string{
 	SpaceOperationFailed: "could not perform operation on this space",
 }
 
-// Constants used for printing a partial trace.
-const (
-	libCallDepth = 3
-	usrCallDepth = 4
-)
-
 // NewSpaceError creates a new error given space spc, a value used in an operation and the return state of the implemented operation.
 // NewSpaceError returns a structure which fulfils the error interface and if an operation error has occured.
 // NewSpaceError returns nil if no operation failure has occured.
 func NewSpaceError(spc *Space, value interface{}, state interface{}) error {
-	var msg, sid, val string
+	var msg, pkg, fun, sid, val string
 	var err error
 	var sop bool
-	var libInfo, usrInfo function.CallerInfo
 	var status interface{}
 
-	libInfo = function.ExtractCallerInfo(libCallDepth)
-	usrInfo = function.ExtractCallerInfo(usrCallDepth)
+	pkg, fun = getCalleInfo(2)
 
 	if spc == nil {
 		sid = "nil"
 		msg = errMsg[SpaceInvalid]
 		status = nil
-	} else if state != nil {
+	} else {
 		sid = (*spc).id
 
 		spct := reflect.ValueOf(spc)
@@ -104,9 +93,7 @@ func NewSpaceError(spc *Space, value interface{}, state interface{}) error {
 	if sop == true {
 		err = nil
 	} else {
-		if state != nil {
-			err = SpaceError{Msg: msg, LibInfo: libInfo, UsrInfo: usrInfo, Sid: sid, Val: val, Sop: sop, Status: status}
-		}
+		err = SpaceError{msg, pkg, fun, sid, val, sop, status}
 	}
 
 	return err
@@ -114,17 +101,28 @@ func NewSpaceError(spc *Space, value interface{}, state interface{}) error {
 
 // Operation returns a boolean value if an operation has succeeded.
 func (e SpaceError) Operation() bool {
-	return e.Sop
+	return e.sop
 }
 
-// Error prints the error message s represented by SpaceError e.
-func (e SpaceError) Error() (s string) {
-	separator := strings.Repeat(" ", 2)
-	libFile := strings.Replace(e.LibInfo.File, strings.Join([]string{build.Default.GOPATH, "/src/"}, ""), "", 1)
-	usrFile := strings.Replace(e.UsrInfo.File, strings.Join([]string{build.Default.GOPATH, "/src/"}, ""), "", 1)
-	libInfo := fmt.Sprintf("%s:%d", libFile, e.LibInfo.Line)
-	usrInfo := fmt.Sprintf("%s:%d", usrFile, e.UsrInfo.Line)
-	call := fmt.Sprintf("%s(%s).%s%s: %s", "Space", e.Sid, e.UsrInfo.Func, e.Val, e.Msg)
-	s = fmt.Sprintf("\n%s%s:\n%s%s:\n%s%s%s.", separator, libInfo, separator, usrInfo, separator, separator, call)
-	return s
+// Error prints the error message represented by SpaceError.
+func (e SpaceError) Error() string {
+	sep := strings.Repeat(" ", 2)
+	return fmt.Sprintf("\n%s%s:\n%s%s%s(%s).%s%s: %s.", sep, e.pkg, sep, sep, "Space", e.sid, e.fun, e.val, e.msg)
+}
+
+// getCalleInfo determines the package and function names associated to a function call.
+// getCalleInfo uses the runtime package, and no file or line information is provided,
+// since this can not be guaranteed due to compiler optimizations.
+func getCalleInfo(depth int) (pkg string, fun string) {
+	fpc, _, _, _ := runtime.Caller(depth)
+
+	fname := runtime.FuncForPC(fpc).Name()
+
+	fparts := strings.Split(fname, ".")
+
+	pkg = strings.Join(fparts[:len(fparts)-2], ".")
+
+	fun = fparts[len(fparts)-1]
+
+	return pkg, fun
 }

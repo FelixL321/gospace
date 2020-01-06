@@ -1,4 +1,4 @@
-package uri
+package shared
 
 import (
 	"testing"

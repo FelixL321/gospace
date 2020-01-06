@@ -1,4 +1,4 @@
-package container
+package shared
 
 import (
 	"reflect"
@@ -8,12 +8,12 @@ import (
 // Test to see if typeField is creating correctly.
 func TestCreateTypeField(t *testing.T) {
 	actualField := "string"
-	testField := ""
+	testField := reflect.TypeOf("")
 
 	actualTypeField := TypeField{actualField}
-	testTypeField := CreateTypeField(reflect.ValueOf(&testField).Elem().Interface())
+	testTypeField := CreateTypeField(testField)
 
-	// Test that the two type fields are equal.
+	// Test that the two templates are equal.
 	typeFieldsEqual := reflect.DeepEqual(actualTypeField, testTypeField)
 
 	if !typeFieldsEqual {
@@ -23,12 +23,12 @@ func TestCreateTypeField(t *testing.T) {
 
 func TestGetType(t *testing.T) {
 	// Setup
-	actualField := ""
-	testTypeField := CreateTypeField(reflect.ValueOf(&actualField).Elem().Interface())
+	actualField := reflect.TypeOf("")
+	testTypeField := CreateTypeField(actualField)
 
 	testField := testTypeField.GetType()
 
-	fieldsEqual := reflect.DeepEqual(reflect.TypeOf(actualField), testField)
+	fieldsEqual := reflect.DeepEqual(actualField, testField)
 
 	if !fieldsEqual {
 		t.Errorf("GetType() gave %+v, should be %+v", testField, actualField)

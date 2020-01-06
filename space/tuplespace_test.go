@@ -1,12 +1,11 @@
 package space
 
 import (
+	. "github.com/pspaces/gospace/protocol"
+	. "github.com/pspaces/gospace/shared"
 	"reflect"
 	"sync"
 	"testing"
-
-	. "github.com/pspaces/gospace/container"
-	. "github.com/pspaces/gospace/protocol"
 )
 
 func TestCreateTupleSpace(t *testing.T) {
@@ -60,7 +59,7 @@ func TestAddNewClient(t *testing.T) {
 	testTupleSpace := createTestTupleSpace(9002)
 
 	// Make a client.
-	temp := NewTemplate([]interface{}{"Field 1"}...)
+	temp := CreateTemplate([]interface{}{"Field 1"}...)
 	response := make(chan *Tuple)
 	remove := false // QueryRequest
 	actualWaitingClient := CreateWaitingClient(temp, response, remove)
@@ -77,7 +76,7 @@ func TestAddNewClient(t *testing.T) {
 func TestRemoveClientAt(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9003)
-	actualWaitingClient := CreateWaitingClient(NewTemplate([]interface{}{"Field 1"}...), make(chan *Tuple), false)
+	actualWaitingClient := CreateWaitingClient(CreateTemplate([]interface{}{"Field 1"}...), make(chan *Tuple), false)
 	testTupleSpace.addNewClient(actualWaitingClient)
 
 	// Remove client with method
@@ -98,11 +97,11 @@ func TestPutPOneMatchingQueryOneMatchingGet(t *testing.T) {
 	// Add one matching QueryRequest and one matching GetRequest
 	queryChan := make(chan *Tuple)
 	getChan := make(chan *Tuple)
-	waitingClientQuery := CreateWaitingClient(NewTemplate([]interface{}{"Matching field"}...), queryChan, false)
-	waitingClientGet := CreateWaitingClient(NewTemplate([]interface{}{"Matching field"}...), getChan, true)
+	waitingClientQuery := CreateWaitingClient(CreateTemplate([]interface{}{"Matching field"}...), queryChan, false)
+	waitingClientGet := CreateWaitingClient(CreateTemplate([]interface{}{"Matching field"}...), getChan, true)
 	testTupleSpace.addNewClient(waitingClientQuery)
 	testTupleSpace.addNewClient(waitingClientGet)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 
 	go testTupleSpace.putP(&testTuple)
 
@@ -128,7 +127,7 @@ func TestPutPOneMatchingQueryOneMatchingGet(t *testing.T) {
 func TestPutPNoWaitingClients(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9005)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 
 	testTupleSpace.putP(&testTuple)
 
@@ -140,7 +139,7 @@ func TestPutPNoWaitingClients(t *testing.T) {
 func TestPut(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9006)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 
 	testChan := make(chan bool)
 
@@ -156,7 +155,7 @@ func TestPut(t *testing.T) {
 func TestClearTupleSpace(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9007)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
 	testTupleSpace.clearTupleSpace()
@@ -169,9 +168,9 @@ func TestClearTupleSpace(t *testing.T) {
 func TestTupleSpaceRemoveTupleAt(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9008)
-	testTuple1 := NewTuple([]interface{}{"Tuple", 1}...)
-	testTuple2 := NewTuple([]interface{}{"Tuple", 2}...)
-	testTuple3 := NewTuple([]interface{}{"Tuple", 3}...)
+	testTuple1 := CreateTuple([]interface{}{"Tuple", 1}...)
+	testTuple2 := CreateTuple([]interface{}{"Tuple", 2}...)
+	testTuple3 := CreateTuple([]interface{}{"Tuple", 3}...)
 	testTupleSpace.putP(&testTuple1)
 	testTupleSpace.putP(&testTuple2)
 	testTupleSpace.putP(&testTuple3)
@@ -192,10 +191,10 @@ func TestTupleSpaceRemoveTupleAt(t *testing.T) {
 func TestFindTupleMatchingTupleRemove(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9009)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	findTupleResult := testTupleSpace.findTuple(testTemplate, true)
 
 	// Check the correct tuple was found.
@@ -212,10 +211,10 @@ func TestFindTupleMatchingTupleRemove(t *testing.T) {
 func TestFindTupleMatchingTupleNoRemove(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9010)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	findTupleResult := testTupleSpace.findTuple(testTemplate, false)
 
 	// Check the correct tuple was found.
@@ -233,7 +232,7 @@ func TestFindTupleNoMatchingTuple(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9011)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	findTupleResult := testTupleSpace.findTuple(testTemplate, true)
 
 	// Check the correct tuple was found.
@@ -250,10 +249,10 @@ func TestFindTupleNoMatchingTuple(t *testing.T) {
 func TestFindTupleBlockingMatchingTuple(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9012)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	go testTupleSpace.findTupleBlocking(testTemplate, testChan, true)
 
@@ -274,7 +273,7 @@ func TestFindTupleBlockingNoMatchingTuple(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9013)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	testTupleSpace.findTupleBlocking(testTemplate, testChan, true)
 
@@ -287,10 +286,10 @@ func TestFindTupleBlockingNoMatchingTuple(t *testing.T) {
 func TestGet(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9014)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	go testTupleSpace.get(testTemplate, testChan)
 
@@ -308,10 +307,10 @@ func TestGet(t *testing.T) {
 func TestQuery(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9015)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	go testTupleSpace.query(testTemplate, testChan)
 
@@ -329,10 +328,10 @@ func TestQuery(t *testing.T) {
 func TestFindTupleNonblocking(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9016)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	go testTupleSpace.findTupleNonblocking(testTemplate, testChan, true)
 
@@ -346,10 +345,10 @@ func TestFindTupleNonblocking(t *testing.T) {
 func TestGetP(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9017)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	go testTupleSpace.getP(testTemplate, testChan)
 
@@ -367,10 +366,10 @@ func TestGetP(t *testing.T) {
 func TestQueryP(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9018)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan *Tuple)
 	go testTupleSpace.queryP(testTemplate, testChan)
 
@@ -388,11 +387,11 @@ func TestQueryP(t *testing.T) {
 func TestFindAllTuplesMatchingTuplesRemove(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9019)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan []Tuple)
 	go testTupleSpace.findAllTuples(testTemplate, testChan, true)
 
@@ -410,11 +409,11 @@ func TestFindAllTuplesMatchingTuplesRemove(t *testing.T) {
 func TestFindAllTuplesMatchingTuplesNoRemove(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9020)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan []Tuple)
 	go testTupleSpace.findAllTuples(testTemplate, testChan, false)
 
@@ -433,7 +432,7 @@ func TestFindAllTuplesNoMatchingTuples(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9021)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan []Tuple)
 	go testTupleSpace.findAllTuples(testTemplate, testChan, false)
 
@@ -451,11 +450,11 @@ func TestFindAllTuplesNoMatchingTuples(t *testing.T) {
 func TestGetAll(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9022)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan []Tuple)
 	go testTupleSpace.getAll(testTemplate, testChan)
 
@@ -473,11 +472,11 @@ func TestGetAll(t *testing.T) {
 func TestQueryAll(t *testing.T) {
 	// Setup
 	testTupleSpace := createTestTupleSpace(9023)
-	testTuple := NewTuple([]interface{}{"Matching field"}...)
+	testTuple := CreateTuple([]interface{}{"Matching field"}...)
 	testTupleSpace.putP(&testTuple)
 	testTupleSpace.putP(&testTuple)
 
-	testTemplate := NewTemplate([]interface{}{"Matching field"}...)
+	testTemplate := CreateTemplate([]interface{}{"Matching field"}...)
 	testChan := make(chan []Tuple)
 	go testTupleSpace.queryAll(testTemplate, testChan)
 

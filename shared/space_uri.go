@@ -1,4 +1,4 @@
-package uri
+package shared
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 // Mode defines the connection mode to a resource.
 type Mode int
 
-// Connection mode constants.
 const (
 	ConnKeep Mode = iota
 	ConnOnce
